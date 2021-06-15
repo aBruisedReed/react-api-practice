@@ -1,28 +1,42 @@
-import React, { useEffect, useReducer, useState } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
-import useAsync from './useAsync';
+import { useUsersState, useUsersDispatch, getUsers } from './UsersContext';
+// import useAsync from './useAsync';
+import { useAsync } from 'react-async';
 import User from './User';
 
-async function getUsers() {
-  const response = await axios.get(
-    'https://jsonplaceholder.typicode.com/users'
-  );
-  return response.data;
-}
+// async function getUsers() {
+//   const response = await axios.get(
+//     'https://jsonplaceholder.typicode.com/users'
+//   );
+//   return response.data;
+// }
+// react-async 는 axios 가 포함된 것인가
 
 function Users() {
-  const [state, fetchUsers] = useAsync(getUsers, [], true);
+  // const [state, fetchUsers] = useAsync(getUsers, [], true);
+  // const { data: users, error, isLoading, run} = useAsync({
+  //   deferFn: getUsers
+  // });
   const [selected, setSelected] = useState(null);
   // const onClick = (e) => {
   //   setSelected(e.target);
   // }
-  if(state.loading) return (<div>Loading...</div>);
-  if(state.error) return <div>Error occur!</div>
-  if(!state.data) return <button onClick={fetchUsers}>reload users</button>;
+  const state = useUsersState();
+  const dispatch = useUsersDispatch();
+  
+  const { data: users, loading, error } = state.users;
+  const fetchData = () => {
+    getUsers(dispatch);
+  };
+
+  if(loading) return (<div>Loading...</div>);
+  if(error) return <div>Error occur!</div>
+  if(!users) return <button onClick={fetchData}>fetchData</button>;
   return (
     <>
       <ul>
-        {state.data.map(user => {
+        {users.map(user => {
           return (
             <li 
               key={user.id} 
@@ -34,7 +48,7 @@ function Users() {
           )
         })}
       </ul>
-      <button onClick={fetchUsers}>reload users</button>
+      <button onClick={fetchData}>fetchData</button>
       {selected && <User id={selected}></User>}
     </>
   )
